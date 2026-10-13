@@ -20,6 +20,8 @@ const DEFAULT_SETTINGS: ControlSettings = {
   hapticsEnabled: true,
   themeId: DEFAULT_THEME_ID,
   difficulty: 'NORMAL',
+  speedLevel: 4,
+  progressiveSpeed: true,
   gameMode: 'CLASSIC',
 };
 

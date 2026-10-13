@@ -58,29 +58,80 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
-        {/* Difficulty */}
-        <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-            <Sliders className="w-4 h-4 text-amber-400" />
-            <span>Base Game Speed</span>
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {(['CASUAL', 'NORMAL', 'TURBO', 'EXTREME'] as Difficulty[]).map((diff) => (
+        {/* Granular Speed Level & Slider */}
+        <div className="space-y-3 p-3 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Sliders className="w-4 h-4 text-emerald-400" />
+              <span>Snake Speed (Level {settings.speedLevel || 4})</span>
+            </label>
+            <span className="text-[11px] font-mono text-emerald-400">
+              {settings.speedLevel === 1 ? '155ms (Relaxed)' :
+               settings.speedLevel === 2 ? '130ms (Casual)' :
+               settings.speedLevel === 3 ? '110ms (Moderate)' :
+               settings.speedLevel === 4 ? '95ms (Standard)' :
+               settings.speedLevel === 5 ? '80ms (Fast)' :
+               settings.speedLevel === 6 ? '68ms (Turbo)' :
+               settings.speedLevel === 7 ? '54ms (Extreme)' : '42ms (Hyper)'}
+            </span>
+          </div>
+
+          <input
+            type="range"
+            min={1}
+            max={8}
+            step={1}
+            value={settings.speedLevel || 4}
+            onChange={(e) => {
+              const lvl = Number(e.target.value);
+              const diff: Difficulty =
+                lvl <= 2 ? 'CASUAL' :
+                lvl <= 4 ? 'NORMAL' :
+                lvl <= 6 ? 'TURBO' : 'EXTREME';
+              onUpdateSettings({ speedLevel: lvl, difficulty: diff });
+            }}
+            className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+          />
+
+          <div className="grid grid-cols-4 gap-1.5 pt-1">
+            {[
+              { lvl: 2, diff: 'CASUAL' as Difficulty, label: 'Casual' },
+              { lvl: 4, diff: 'NORMAL' as Difficulty, label: 'Normal' },
+              { lvl: 6, diff: 'TURBO' as Difficulty, label: 'Turbo' },
+              { lvl: 8, diff: 'EXTREME' as Difficulty, label: 'Extreme' },
+            ].map((preset) => (
               <button
-                key={diff}
+                key={preset.lvl}
                 type="button"
-                onClick={() => onUpdateSettings({ difficulty: diff })}
-                className={`py-2 px-2.5 rounded-xl border text-xs font-medium capitalize transition-all ${
-                  settings.difficulty === diff
-                    ? 'border-amber-500 bg-amber-500/20 text-amber-300'
-                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-slate-200'
+                onClick={() => onUpdateSettings({ speedLevel: preset.lvl, difficulty: preset.diff })}
+                className={`py-1.5 text-xs font-medium rounded-xl border transition-all ${
+                  settings.speedLevel === preset.lvl
+                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold'
+                    : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {diff.toLowerCase()}
+                {preset.label}
               </button>
             ))}
           </div>
+
+          {/* Progressive Acceleration Checkbox */}
+          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <label className="text-slate-300 cursor-pointer flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={settings.progressiveSpeed}
+                onChange={(e) => onUpdateSettings({ progressiveSpeed: e.target.checked })}
+                className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer"
+              />
+              <span>Progressive Speed Acceleration</span>
+            </label>
+            <span className="text-[11px] text-slate-400">
+              {settings.progressiveSpeed ? 'Speeds up with length' : 'Constant pace'}
+            </span>
+          </div>
         </div>
+
 
         {/* Game Mode */}
         <div className="space-y-2">

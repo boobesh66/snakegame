@@ -39,6 +39,10 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({ onClose 
               <span>Use the ergonomic 4-way direction buttons below the grid for tactile, precise thumb control.</span>
             </div>
             <div className="flex items-start gap-2">
+              <span className="font-bold text-amber-400 shrink-0">Turbo Boost:</span>
+              <span>Hold the <span className="font-bold text-amber-300">Boost ⚡</span> button on mobile to sprint at hyper speed!</span>
+            </div>
+            <div className="flex items-start gap-2">
               <span className="font-bold text-emerald-400 shrink-0">Pause / Resume:</span>
               <span>Tap the pause button or tap directly on the arena surface to toggle pause.</span>
             </div>
@@ -51,17 +55,22 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({ onClose 
             <Keyboard className="w-4 h-4" />
             <span>Desktop Keyboard Controls</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
               <div className="font-semibold text-white mb-1">Directional Keys</div>
-              <p className="text-slate-400">Arrow Keys (<kbd className="text-white font-mono">↑</kbd>, <kbd className="text-white font-mono">↓</kbd>, <kbd className="text-white font-mono">←</kbd>, <kbd className="text-white font-mono">→</kbd>) or <kbd className="text-white font-mono">W</kbd>, <kbd className="text-white font-mono">A</kbd>, <kbd className="text-white font-mono">S</kbd>, <kbd className="text-white font-mono">D</kbd></p>
+              <p className="text-slate-400">Arrow Keys (<kbd className="text-white font-mono">↑</kbd>, <kbd className="text-white font-mono">↓</kbd>, <kbd className="text-white font-mono">←</kbd>, <kbd className="text-white font-mono">→</kbd>) or <kbd className="text-white font-mono">WASD</kbd></p>
             </div>
             <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
-              <div className="font-semibold text-white mb-1">Pause & Quick Restart</div>
-              <p className="text-slate-400"><kbd className="text-white font-mono">Space</kbd> or <kbd className="text-white font-mono">P</kbd> to Pause. <kbd className="text-white font-mono">R</kbd> to Restart run.</p>
+              <div className="font-semibold text-white mb-1">Turbo Sprint</div>
+              <p className="text-slate-400">Hold <kbd className="text-amber-300 font-mono">Shift</kbd> key to sprint at double speed.</p>
+            </div>
+            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+              <div className="font-semibold text-white mb-1">Pause & Restart</div>
+              <p className="text-slate-400"><kbd className="text-white font-mono">Space</kbd> or <kbd className="text-white font-mono">P</kbd> to Pause. <kbd className="text-white font-mono">R</kbd> to Restart.</p>
             </div>
           </div>
         </div>
+
 
         {/* Section 3: Food & Power-ups */}
         <div className="space-y-3">

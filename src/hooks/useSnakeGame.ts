@@ -31,6 +31,18 @@ const DIFFICULTY_BASE_SPEEDS: Record<Difficulty, number> = {
   EXTREME: 50,
 };
 
+export const SPEED_LEVEL_INTERVALS: Record<number, number> = {
+  1: 155, // 1 - Relaxed / Slow
+  2: 130, // 2 - Casual
+  3: 110, // 3 - Moderate
+  4: 95,  // 4 - Standard / Normal
+  5: 80,  // 5 - Fast
+  6: 68,  // 6 - Turbo
+  7: 54,  // 7 - Extreme
+  8: 42,  // 8 - Hyper Insane
+};
+
+
 function createInitialSnake(): Coordinate[] {
   return [
     { x: 9, y: 10 },
@@ -61,7 +73,12 @@ function generateObstacles(mode: GameMode): Coordinate[] {
   return obstacles;
 }
 
-export function useSnakeGame(mode: GameMode, difficulty: Difficulty) {
+export function useSnakeGame(
+  mode: GameMode,
+  difficulty: Difficulty,
+  speedLevel: number = 4,
+  progressiveSpeed: boolean = true
+) {
   const [snake, setSnake] = useState<Coordinate[]>(createInitialSnake);
   const [direction, setDirection] = useState<Direction>('RIGHT');
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
@@ -75,10 +92,15 @@ export function useSnakeGame(mode: GameMode, difficulty: Difficulty) {
   const [survivalTime, setSurvivalTime] = useState<number>(0);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [scorePopups, setScorePopups] = useState<ScorePopup[]>([]);
+  const [isBoosting, setIsBoosting] = useState<boolean>(false);
 
   // Refs for high performance game loop without stale closures
   const snakeRef = useRef<Coordinate[]>(snake);
   snakeRef.current = snake;
+
+  const isBoostingRef = useRef<boolean>(false);
+  isBoostingRef.current = isBoosting;
+
 
   const currentDirRef = useRef<Direction>('RIGHT');
   const inputQueueRef = useRef<Direction[]>([]);
@@ -474,18 +496,28 @@ export function useSnakeGame(mode: GameMode, difficulty: Difficulty) {
 
   // Compute dynamic tick interval
   const getTickInterval = useCallback((): number => {
-    const base = DIFFICULTY_BASE_SPEEDS[difficulty];
-    // Gentle progressive acceleration as snake grows
-    const growthSpeedUp = Math.min(Math.floor(snake.length / 5) * 3, 25);
-    let speed = Math.max(base - growthSpeedUp, 45);
+    const base = SPEED_LEVEL_INTERVALS[speedLevel] || DIFFICULTY_BASE_SPEEDS[difficulty] || 95;
+    let speed = base;
+
+    // Gentle progressive acceleration as snake grows (if enabled)
+    if (progressiveSpeed) {
+      const growthSpeedUp = Math.min(Math.floor(snake.length / 5) * 3, 25);
+      speed = Math.max(base - growthSpeedUp, 36);
+    }
+
+    // Sprint / Turbo boost (Shift key or hold button)
+    if (isBoostingRef.current) {
+      speed = Math.floor(speed * 0.58);
+    }
 
     if (activePowerUp?.type === 'SPEED') {
       speed = Math.floor(speed * 0.65);
     } else if (activePowerUp?.type === 'SLOW') {
       speed = Math.floor(speed * 1.45);
     }
-    return speed;
-  }, [difficulty, snake.length, activePowerUp]);
+    return Math.max(speed, 28);
+  }, [speedLevel, difficulty, progressiveSpeed, snake.length, activePowerUp]);
+
 
   // Game Loop requestAnimationFrame
   useEffect(() => {
@@ -558,6 +590,9 @@ export function useSnakeGame(mode: GameMode, difficulty: Difficulty) {
     survivalTime,
     particles,
     scorePopups,
+    isBoosting,
+    setIsBoosting,
+    currentSpeedInterval: getTickInterval(),
     changeDirection,
     startGame,
     pauseGame,
@@ -566,3 +601,4 @@ export function useSnakeGame(mode: GameMode, difficulty: Difficulty) {
     resetGame,
   };
 }
+

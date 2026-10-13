@@ -11,6 +11,9 @@ interface GameHUDProps {
   activePowerUp: ActivePowerUp | null;
   mode: GameMode;
   difficulty: Difficulty;
+  speedLevel?: number;
+  isBoosting?: boolean;
+  currentIntervalMs?: number;
   survivalTime: number;
 }
 
@@ -23,6 +26,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   activePowerUp,
   mode,
   difficulty,
+  speedLevel = 4,
+  isBoosting = false,
+  currentIntervalMs = 95,
   survivalTime,
 }) => {
   const [comboPercent, setComboPercent] = useState<number>(0);
@@ -97,8 +103,25 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         <div className="flex items-center gap-2">
           <span>Mode: <strong className="text-slate-200 capitalize font-medium">{mode.toLowerCase()}</strong></span>
           <span aria-hidden="true">·</span>
-          <span>Speed: <strong className="text-slate-200 capitalize font-medium">{difficulty.toLowerCase()}</strong></span>
+          <span className="flex items-center gap-1">
+            <span>Speed:</span>
+            {isBoosting ? (
+              <span className="text-amber-400 font-bold animate-pulse">⚡ BOOSTING ({currentIntervalMs}ms)</span>
+            ) : (
+              <strong className="text-emerald-400 font-mono font-medium">
+                Lvl {speedLevel} ({currentIntervalMs}ms)
+              </strong>
+            )}
+          </span>
         </div>
+
+        <div className="flex items-center gap-2 tabular-nums">
+          <span>Length: <strong className="text-slate-200 font-medium">{snakeLength}</strong></span>
+          <span aria-hidden="true">·</span>
+          <span>Time: <strong className="text-slate-200 font-medium">{formatTime(survivalTime)}</strong></span>
+        </div>
+      </div>
+
 
         <div className="flex items-center gap-2 tabular-nums">
           <span>Length: <strong className="text-slate-200 font-medium">{snakeLength}</strong></span>

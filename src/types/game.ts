@@ -92,5 +92,8 @@ export interface ControlSettings {
   hapticsEnabled: boolean;
   themeId: string;
   difficulty: Difficulty;
+  speedLevel: number; // 1 to 8 (1 = 150ms relaxed, 8 = 42ms hyper)
+  progressiveSpeed: boolean; // whether speed increases gradually as snake eats
   gameMode: GameMode;
 }
+

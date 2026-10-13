@@ -14,12 +14,14 @@ import { ThemesModal } from './components/ThemesModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
 import { StatsPanel } from './components/StatsPanel';
+import { SpeedControl } from './components/SpeedControl';
+
 import { THEMES, DEFAULT_THEME_ID } from './utils/themes';
 import { sound } from './utils/audio';
 import { setHapticsEnabled } from './utils/haptics';
 import { loadSettings, saveSettings, loadGameStats } from './utils/storage';
 import { ControlSettings, Direction } from './types/game';
-import { Trophy, HelpCircle, Palette, Sparkles, Smartphone, Keyboard, ShieldAlert } from 'lucide-react';
+import { Trophy, HelpCircle, Palette, Sparkles, Smartphone, Keyboard } from 'lucide-react';
 
 import heroBannerImg from './assets/images/arcade_snake_hero_1791877027887.jpg';
 import snakeMascotImg from './assets/images/snake_badge_mascot_1791877027128.jpg';
@@ -34,7 +36,7 @@ export default function App() {
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
-  // Game Engine
+  // Game Engine with Speed Control & Boosting
   const {
     snake,
     direction,
@@ -49,13 +51,22 @@ export default function App() {
     survivalTime,
     particles,
     scorePopups,
+    isBoosting,
+    setIsBoosting,
+    currentSpeedInterval,
     changeDirection,
     startGame,
     pauseGame,
     resumeGame,
     togglePause,
     resetGame,
-  } = useSnakeGame(settings.gameMode, settings.difficulty);
+  } = useSnakeGame(
+    settings.gameMode,
+    settings.difficulty,
+    settings.speedLevel || 4,
+    settings.progressiveSpeed ?? true
+  );
+
 
   // Active Theme
   const currentTheme = THEMES[settings.themeId] || THEMES[DEFAULT_THEME_ID];
@@ -88,6 +99,19 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Avoid capturing when modal inputs or forms might be open
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      // Shift key hold for Turbo Sprint
+      if (e.key === 'Shift') {
+        setIsBoosting(true);
+        return;
+      }
+
+      // Number keys 1-8 for quick speed level selection
+      if (e.key >= '1' && e.key <= '8' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        const lvl = Number(e.key);
+        handleUpdateSettings({ speedLevel: lvl });
         return;
       }
 
@@ -124,9 +148,20 @@ export default function App() {
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsBoosting(false);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [changeDirection, togglePause, resetGame, gameStatus]);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [changeDirection, togglePause, resetGame, gameStatus, setIsBoosting]);
+
 
   // Refresh lifetime stats on game over or periodically
   useEffect(() => {
@@ -224,27 +259,20 @@ export default function App() {
                 </button>
               ))}
             </div>
-
-            <div className="text-xs font-semibold text-slate-300 pt-1">Difficulty Speed</div>
-            <div className="grid grid-cols-4 gap-1 p-1 bg-slate-950/70 rounded-xl border border-slate-800/60">
-              {(['CASUAL', 'NORMAL', 'TURBO', 'EXTREME'] as const).map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => {
-                    handleUpdateSettings({ difficulty: d });
-                  }}
-                  className={`py-1.5 text-[10px] font-semibold rounded-lg capitalize transition-all ${
-                    settings.difficulty === d
-                      ? 'bg-amber-400 text-slate-950 shadow-sm'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {d.toLowerCase()}
-                </button>
-              ))}
-            </div>
           </div>
+
+          {/* Dedicated Snake Speed Controller on Desktop */}
+
+          <SpeedControl
+            speedLevel={settings.speedLevel || 4}
+            onSpeedLevelChange={(level) => handleUpdateSettings({ speedLevel: level })}
+            progressiveSpeed={settings.progressiveSpeed ?? true}
+            onProgressiveSpeedToggle={(enabled) => handleUpdateSettings({ progressiveSpeed: enabled })}
+            isBoosting={isBoosting}
+            onBoostStart={() => setIsBoosting(true)}
+            onBoostEnd={() => setIsBoosting(false)}
+            currentIntervalMs={currentSpeedInterval}
+          />
 
           {/* Desktop Controls Quick Reminder */}
           <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 text-xs space-y-2">
@@ -256,6 +284,14 @@ export default function App() {
               <div className="flex justify-between">
                 <span>Move</span>
                 <span className="font-mono text-slate-200">WASD / Arrow Keys</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Turbo Sprint</span>
+                <span className="font-mono text-amber-300">Hold Shift</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Quick Speeds</span>
+                <span className="font-mono text-emerald-400">Keys 1 - 8</span>
               </div>
               <div className="flex justify-between">
                 <span>Pause</span>
@@ -281,6 +317,9 @@ export default function App() {
             activePowerUp={activePowerUp}
             mode={settings.gameMode}
             difficulty={settings.difficulty}
+            speedLevel={settings.speedLevel || 4}
+            isBoosting={isBoosting}
+            currentIntervalMs={currentSpeedInterval}
             survivalTime={survivalTime}
           />
 
@@ -300,6 +339,20 @@ export default function App() {
             swipeSensitivity={settings.swipeSensitivity}
           />
 
+          {/* Dedicated On-Screen Speed Control for Mobile Viewports */}
+          <div className="w-full mt-3 mb-1 lg:hidden">
+            <SpeedControl
+              speedLevel={settings.speedLevel || 4}
+              onSpeedLevelChange={(level) => handleUpdateSettings({ speedLevel: level })}
+              progressiveSpeed={settings.progressiveSpeed ?? true}
+              onProgressiveSpeedToggle={(enabled) => handleUpdateSettings({ progressiveSpeed: enabled })}
+              isBoosting={isBoosting}
+              onBoostStart={() => setIsBoosting(true)}
+              onBoostEnd={() => setIsBoosting(false)}
+              currentIntervalMs={currentSpeedInterval}
+            />
+          </div>
+
           {/* Mobile Touch Controls (D-Pad & Actions) */}
           <div className="w-full">
             <TouchControls
@@ -309,8 +362,12 @@ export default function App() {
               onTogglePause={togglePause}
               onReset={resetGame}
               visible={settings.touchMode !== 'SWIPE_ONLY'}
+              isBoosting={isBoosting}
+              onBoostStart={() => setIsBoosting(true)}
+              onBoostEnd={() => setIsBoosting(false)}
             />
           </div>
+
 
           {/* Quick Mobile Action Bar (Help, Themes, Stats) */}
           <div className="flex items-center justify-center gap-3 pt-2 text-xs text-slate-400 md:hidden">
