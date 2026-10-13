@@ -11,9 +11,6 @@ interface GameHUDProps {
   activePowerUp: ActivePowerUp | null;
   mode: GameMode;
   difficulty: Difficulty;
-  speedLevel?: number;
-  isBoosting?: boolean;
-  currentIntervalMs?: number;
   survivalTime: number;
 }
 
@@ -26,9 +23,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   activePowerUp,
   mode,
   difficulty,
-  speedLevel = 4,
-  isBoosting = false,
-  currentIntervalMs = 95,
   survivalTime,
 }) => {
   const [comboPercent, setComboPercent] = useState<number>(0);
@@ -55,17 +49,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({
     return () => clearInterval(timer);
   }, [comboExpiry, activePowerUp]);
 
-  const formatTime = (secs: number) => {
+  const formatTime = (secs: number): string => {
     const mins = Math.floor(secs / 60);
     const s = secs % 60;
     return `${mins}:${s.toString().padStart(2, '0')}`;
   };
 
+  const modeText = mode ? mode.toLowerCase() : 'classic';
+  const diffText = difficulty ? difficulty.toLowerCase() : 'normal';
+
   return (
     <div className="w-full max-w-[540px] mb-3 space-y-2">
-      {/* Top Scores & Metrics Bar */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 sm:p-4 backdrop-blur-md flex items-center justify-between gap-4 shadow-lg">
-        {/* Current Score */}
         <div>
           <div className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Score</div>
           <div className="text-2xl sm:text-3xl font-extrabold text-white tabular-nums tracking-tight">
@@ -73,8 +68,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </div>
         </div>
 
-        {/* Combo Tracker */}
-        {combo > 1 && (
+        {combo > 1 ? (
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-1 text-amber-400 font-bold text-xs sm:text-sm animate-bounce">
               <Zap className="w-3.5 h-3.5 fill-current" />
@@ -87,9 +81,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               />
             </div>
           </div>
-        )}
+        ) : null}
 
-        {/* High Score & Survival Time */}
         <div className="text-right">
           <div className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Best Record</div>
           <div className="text-xl sm:text-2xl font-bold text-emerald-400 tabular-nums">
@@ -98,56 +91,37 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       </div>
 
-      {/* Secondary Clean Metadata Row */}
       <div className="flex items-center justify-between text-xs text-slate-400 px-1">
         <div className="flex items-center gap-2">
-          <span>Mode: <strong className="text-slate-200 capitalize font-medium">{mode.toLowerCase()}</strong></span>
-          <span aria-hidden="true">·</span>
-          <span className="flex items-center gap-1">
-            <span>Speed:</span>
-            {isBoosting ? (
-              <span className="text-amber-400 font-bold animate-pulse">⚡ BOOSTING ({currentIntervalMs}ms)</span>
-            ) : (
-              <strong className="text-emerald-400 font-mono font-medium">
-                Lvl {speedLevel} ({currentIntervalMs}ms)
-              </strong>
-            )}
-          </span>
+          <span>Mode: <strong className="text-slate-200 capitalize font-medium">{modeText}</strong></span>
+          <span aria-hidden="true">&middot;</span>
+          <span>Speed: <strong className="text-slate-200 capitalize font-medium">{diffText}</strong></span>
         </div>
 
         <div className="flex items-center gap-2 tabular-nums">
           <span>Length: <strong className="text-slate-200 font-medium">{snakeLength}</strong></span>
-          <span aria-hidden="true">·</span>
+          <span aria-hidden="true">&middot;</span>
           <span>Time: <strong className="text-slate-200 font-medium">{formatTime(survivalTime)}</strong></span>
         </div>
       </div>
 
-
-        <div className="flex items-center gap-2 tabular-nums">
-          <span>Length: <strong className="text-slate-200 font-medium">{snakeLength}</strong></span>
-          <span aria-hidden="true">·</span>
-          <span>Time: <strong className="text-slate-200 font-medium">{formatTime(survivalTime)}</strong></span>
-        </div>
-      </div>
-
-      {/* Active Power-up alert bar */}
-      {activePowerUp && (
+      {activePowerUp ? (
         <div className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 flex items-center justify-between text-xs animate-pulse">
           <div className="flex items-center gap-2">
-            {activePowerUp.type === 'SPEED' && <Flame className="w-4 h-4 text-orange-400" />}
-            {activePowerUp.type === 'SLOW' && <Snowflake className="w-4 h-4 text-sky-400" />}
-            {activePowerUp.type === 'GHOST' && <Ghost className="w-4 h-4 text-purple-400" />}
+            {activePowerUp.type === 'SPEED' ? <Flame className="w-4 h-4 text-orange-400" /> : null}
+            {activePowerUp.type === 'SLOW' ? <Snowflake className="w-4 h-4 text-sky-400" /> : null}
+            {activePowerUp.type === 'GHOST' ? <Ghost className="w-4 h-4 text-purple-400" /> : null}
             <span className="font-semibold text-white">
-              {activePowerUp.type === 'SPEED' && 'Hyper Speed (2x Multiplier)'}
-              {activePowerUp.type === 'SLOW' && 'Frost Slow-Motion'}
-              {activePowerUp.type === 'GHOST' && 'Ghost Pass (Phasing Walls)'}
+              {activePowerUp.type === 'SPEED' ? 'Hyper Speed (2x Multiplier)' : null}
+              {activePowerUp.type === 'SLOW' ? 'Frost Slow-Motion' : null}
+              {activePowerUp.type === 'GHOST' ? 'Ghost Pass (Phasing Walls)' : null}
             </span>
           </div>
           <span className="font-mono font-bold text-emerald-400 tabular-nums">
             {powerUpTimeLeft}s
           </span>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
