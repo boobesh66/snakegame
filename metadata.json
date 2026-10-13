@@ -1,0 +1,6 @@
+{
+  "name": "PLAY TO PLAY",
+  "description": "Arcade Snake game designed for desktop and mobile play with touch swipe gestures, on-screen controls, and fluid keyboard controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
